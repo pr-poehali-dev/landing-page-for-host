@@ -1,378 +1,322 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import Icon from '@/components/ui/icon';
 
-interface Employee {
-  id: number;
-  name: string;
-  position: string;
-  phone: string;
-  is_active: boolean;
-}
-
-interface Shift {
-  id: number;
-  employee_id: number;
-  shift_date: string;
-  start_time: string;
-  end_time: string;
-  shift_type: 'morning' | 'day' | 'evening' | 'night' | 'custom';
-  notes: string;
-}
-
 const Index = () => {
-  const [employees, setEmployees] = useState<Employee[]>([
-    { id: 1, name: 'Анна Иванова', position: 'Бариста', phone: '+7 999 111-11-11', is_active: true },
-    { id: 2, name: 'Петр Сидоров', position: 'Официант', phone: '+7 999 222-22-22', is_active: true },
-    { id: 3, name: 'Мария Петрова', position: 'Менеджер', phone: '+7 999 333-33-33', is_active: true }
-  ]);
-  
-  const [shifts, setShifts] = useState<Shift[]>([]);
-  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
-  const [newEmployee, setNewEmployee] = useState({ name: '', position: '', phone: '' });
-  const [newShift, setNewShift] = useState({
-    employee_id: 0,
-    shift_date: new Date().toISOString().split('T')[0],
-    start_time: '09:00',
-    end_time: '18:00',
-    shift_type: 'day' as const,
-    notes: ''
+  const [formData, setFormData] = useState({
+    name: '',
+    phone: '',
+    email: '',
+    eventType: '',
+    message: ''
   });
 
-  const getDaysInWeek = (date: string) => {
-    const current = new Date(date);
-    const week = [];
-    const dayOfWeek = current.getDay();
-    const diff = current.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1);
-    
-    for (let i = 0; i < 7; i++) {
-      const day = new Date(current.setDate(diff + i));
-      week.push(day.toISOString().split('T')[0]);
+  const services = [
+    {
+      icon: 'PartyPopper',
+      title: 'Свадьбы',
+      description: 'Сделаю ваш день незабываемым с профессиональной программой и атмосферой праздника'
+    },
+    {
+      icon: 'Cake',
+      title: 'Дни рождения',
+      description: 'Веселые игры, конкурсы и развлечения для гостей любого возраста'
+    },
+    {
+      icon: 'Briefcase',
+      title: 'Корпоративы',
+      description: 'Создам деловую и одновременно непринужденную атмосферу для вашей команды'
+    },
+    {
+      icon: 'Music',
+      title: 'Концерты',
+      description: 'Профессиональное ведение концертов и музыкальных мероприятий'
+    },
+    {
+      icon: 'Award',
+      title: 'Конференции',
+      description: 'Модерация, презентации и работа с аудиторией на деловых мероприятиях'
+    },
+    {
+      icon: 'Star',
+      title: 'Детские праздники',
+      description: 'Интерактивные программы с аниматорами и яркими эмоциями для детей'
     }
-    return week;
-  };
+  ];
 
-  const weekDays = getDaysInWeek(selectedDate);
-  const dayNames = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
+  const portfolio = [
+    { event: 'Свадьба Анны и Дмитрия', guests: 120, date: 'Июнь 2024' },
+    { event: 'Корпоратив IT-компании', guests: 80, date: 'Май 2024' },
+    { event: 'День рождения 30 лет', guests: 50, date: 'Апрель 2024' },
+    { event: 'Детский праздник', guests: 25, date: 'Март 2024' }
+  ];
 
-  const addEmployee = () => {
-    if (!newEmployee.name.trim() || !newEmployee.position.trim()) return;
-    const employee: Employee = {
-      id: Date.now(),
-      ...newEmployee,
-      is_active: true
-    };
-    setEmployees([...employees, employee]);
-    setNewEmployee({ name: '', position: '', phone: '' });
-  };
-
-  const addShift = () => {
-    if (newShift.employee_id === 0) return;
-    const shift: Shift = {
-      id: Date.now(),
-      ...newShift
-    };
-    setShifts([...shifts, shift]);
-    setNewShift({
-      employee_id: 0,
-      shift_date: new Date().toISOString().split('T')[0],
-      start_time: '09:00',
-      end_time: '18:00',
-      shift_type: 'day',
-      notes: ''
-    });
-  };
-
-  const deleteShift = (shiftId: number) => {
-    setShifts(shifts.filter(s => s.id !== shiftId));
-  };
-
-  const getShiftColor = (type: string) => {
-    switch (type) {
-      case 'morning': return 'bg-yellow-100 border-yellow-400';
-      case 'day': return 'bg-blue-100 border-blue-400';
-      case 'evening': return 'bg-purple-100 border-purple-400';
-      case 'night': return 'bg-indigo-100 border-indigo-400';
-      default: return 'bg-gray-100 border-gray-400';
-    }
-  };
-
-  const getShiftName = (type: string) => {
-    switch (type) {
-      case 'morning': return 'Утро';
-      case 'day': return 'День';
-      case 'evening': return 'Вечер';
-      case 'night': return 'Ночь';
-      default: return 'Другое';
-    }
-  };
-
-  const getShiftsForEmployeeAndDate = (employeeId: number, date: string) => {
-    return shifts.filter(s => s.employee_id === employeeId && s.shift_date === date);
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    alert('Спасибо! Я свяжусь с вами в ближайшее время!');
+    setFormData({ name: '', phone: '', email: '', eventType: '', message: '' });
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
-      <header className="bg-white border-b shadow-sm sticky top-0 z-40">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <h1 className="text-2xl font-heading font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-                График работы
-              </h1>
-            </div>
-            
-            <div className="flex items-center gap-3">
-              <Dialog>
-                <DialogTrigger asChild>
-                  <Button size="sm" variant="outline">
-                    <Icon name="UserPlus" size={16} className="mr-2" />
-                    Сотрудник
-                  </Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Добавить сотрудника</DialogTitle>
-                  </DialogHeader>
-                  <div className="space-y-4 pt-4">
-                    <div>
-                      <label className="text-sm font-medium mb-2 block">Имя</label>
-                      <Input
-                        placeholder="ФИО сотрудника"
-                        value={newEmployee.name}
-                        onChange={(e) => setNewEmployee({ ...newEmployee, name: e.target.value })}
-                      />
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium mb-2 block">Должность</label>
-                      <Input
-                        placeholder="Должность"
-                        value={newEmployee.position}
-                        onChange={(e) => setNewEmployee({ ...newEmployee, position: e.target.value })}
-                      />
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium mb-2 block">Телефон</label>
-                      <Input
-                        placeholder="+7 999 999-99-99"
-                        value={newEmployee.phone}
-                        onChange={(e) => setNewEmployee({ ...newEmployee, phone: e.target.value })}
-                      />
-                    </div>
-                    <Button onClick={addEmployee} className="w-full">Добавить</Button>
-                  </div>
-                </DialogContent>
-              </Dialog>
-
-              <Dialog>
-                <DialogTrigger asChild>
-                  <Button size="sm" className="bg-gradient-to-r from-primary to-secondary text-white">
-                    <Icon name="Plus" size={16} className="mr-2" />
-                    Смена
-                  </Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Создать смену</DialogTitle>
-                  </DialogHeader>
-                  <div className="space-y-4 pt-4">
-                    <div>
-                      <label className="text-sm font-medium mb-2 block">Сотрудник</label>
-                      <Select
-                        value={newShift.employee_id.toString()}
-                        onValueChange={(value) => setNewShift({ ...newShift, employee_id: parseInt(value) })}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Выберите сотрудника" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {employees.filter(e => e.is_active).map(emp => (
-                            <SelectItem key={emp.id} value={emp.id.toString()}>
-                              {emp.name} - {emp.position}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium mb-2 block">Дата</label>
-                      <Input
-                        type="date"
-                        value={newShift.shift_date}
-                        onChange={(e) => setNewShift({ ...newShift, shift_date: e.target.value })}
-                      />
-                    </div>
-                    <div className="grid grid-cols-2 gap-3">
-                      <div>
-                        <label className="text-sm font-medium mb-2 block">Начало</label>
-                        <Input
-                          type="time"
-                          value={newShift.start_time}
-                          onChange={(e) => setNewShift({ ...newShift, start_time: e.target.value })}
-                        />
-                      </div>
-                      <div>
-                        <label className="text-sm font-medium mb-2 block">Конец</label>
-                        <Input
-                          type="time"
-                          value={newShift.end_time}
-                          onChange={(e) => setNewShift({ ...newShift, end_time: e.target.value })}
-                        />
-                      </div>
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium mb-2 block">Тип смены</label>
-                      <Select
-                        value={newShift.shift_type}
-                        onValueChange={(value: any) => setNewShift({ ...newShift, shift_type: value })}
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="morning">Утренняя</SelectItem>
-                          <SelectItem value="day">Дневная</SelectItem>
-                          <SelectItem value="evening">Вечерняя</SelectItem>
-                          <SelectItem value="night">Ночная</SelectItem>
-                          <SelectItem value="custom">Другое</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium mb-2 block">Примечания</label>
-                      <Textarea
-                        placeholder="Доп. информация..."
-                        value={newShift.notes}
-                        onChange={(e) => setNewShift({ ...newShift, notes: e.target.value })}
-                      />
-                    </div>
-                    <Button onClick={addShift} className="w-full">Создать смену</Button>
-                  </div>
-                </DialogContent>
-              </Dialog>
-            </div>
-          </div>
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-pink-50">
+      <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-purple-600 via-pink-500 to-orange-400 opacity-90"></div>
+        <div className="absolute inset-0">
+          <div className="absolute top-20 left-20 w-72 h-72 bg-white rounded-full opacity-10 blur-3xl animate-pulse"></div>
+          <div className="absolute bottom-20 right-20 w-96 h-96 bg-yellow-300 rounded-full opacity-10 blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
         </div>
-      </header>
-
-      <main className="container mx-auto px-4 py-6">
-        <div className="mb-6 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => {
-                const prev = new Date(selectedDate);
-                prev.setDate(prev.getDate() - 7);
-                setSelectedDate(prev.toISOString().split('T')[0]);
-              }}
-            >
-              <Icon name="ChevronLeft" size={20} />
-            </Button>
-            <Input
-              type="date"
-              value={selectedDate}
-              onChange={(e) => setSelectedDate(e.target.value)}
-              className="w-auto"
-            />
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => {
-                const next = new Date(selectedDate);
-                next.setDate(next.getDate() + 7);
-                setSelectedDate(next.toISOString().split('T')[0]);
-              }}
-            >
-              <Icon name="ChevronRight" size={20} />
-            </Button>
+        
+        <div className="container mx-auto px-4 relative z-10 text-center text-white">
+          <div className="mb-8 inline-block">
+            <div className="w-32 h-32 bg-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-2xl">
+              <Icon name="Mic2" size={64} className="text-purple-600" />
+            </div>
           </div>
           
-          <div className="text-sm text-muted-foreground">
-            {employees.filter(e => e.is_active).length} сотрудников • {shifts.length} смен
+          <h1 className="text-5xl md:text-7xl font-heading font-bold mb-6 animate-fade-in">
+            Александр Волков
+          </h1>
+          <p className="text-2xl md:text-3xl mb-4 font-light">
+            Профессиональный ведущий мероприятий
+          </p>
+          <p className="text-lg md:text-xl mb-12 max-w-2xl mx-auto opacity-90">
+            Более 8 лет опыта • 500+ успешных мероприятий • Индивидуальный подход к каждому событию
+          </p>
+          
+          <div className="flex flex-wrap gap-4 justify-center">
+            <Button 
+              size="lg" 
+              className="bg-white text-purple-600 hover:bg-gray-100 text-lg px-8 py-6"
+              onClick={() => document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' })}
+            >
+              <Icon name="MessageCircle" size={20} className="mr-2" />
+              Заказать мероприятие
+            </Button>
+            <Button 
+              size="lg" 
+              variant="outline" 
+              className="border-2 border-white text-white hover:bg-white hover:text-purple-600 text-lg px-8 py-6"
+              onClick={() => document.getElementById('services')?.scrollIntoView({ behavior: 'smooth' })}
+            >
+              <Icon name="ArrowDown" size={20} className="mr-2" />
+              Узнать больше
+            </Button>
+          </div>
+
+          <div className="mt-16 flex gap-6 justify-center">
+            <a href="tel:+79991234567" className="text-white hover:scale-110 transition-transform">
+              <Icon name="Phone" size={28} />
+            </a>
+            <a href="mailto:host@example.com" className="text-white hover:scale-110 transition-transform">
+              <Icon name="Mail" size={28} />
+            </a>
+            <a href="#" className="text-white hover:scale-110 transition-transform">
+              <Icon name="Instagram" size={28} />
+            </a>
+            <a href="#" className="text-white hover:scale-110 transition-transform">
+              <Icon name="Youtube" size={28} />
+            </a>
           </div>
         </div>
+      </section>
 
-        <div className="overflow-x-auto">
-          <div className="min-w-max">
-            <div className="grid grid-cols-8 gap-2 mb-2">
-              <div className="font-semibold text-sm">Сотрудник</div>
-              {weekDays.map((day, idx) => (
-                <div key={day} className="text-center">
-                  <div className="font-semibold text-sm">{dayNames[idx]}</div>
-                  <div className="text-xs text-muted-foreground">
-                    {new Date(day).getDate()}.{new Date(day).getMonth() + 1}
+      <section id="services" className="py-20 bg-white">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl md:text-5xl font-heading font-bold mb-4 bg-gradient-to-r from-purple-600 to-pink-500 bg-clip-text text-transparent">
+              Мои услуги
+            </h2>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              Провожу мероприятия любого формата с максимальной отдачей и профессионализмом
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {services.map((service, idx) => (
+              <Card key={idx} className="hover:shadow-xl transition-all hover:-translate-y-1 border-2">
+                <CardContent className="p-6">
+                  <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center mb-4">
+                    <Icon name={service.icon} size={32} className="text-white" />
                   </div>
-                </div>
-              ))}
-            </div>
-
-            <div className="space-y-2">
-              {employees.filter(e => e.is_active).map(employee => (
-                <Card key={employee.id}>
-                  <CardContent className="p-3">
-                    <div className="grid grid-cols-8 gap-2">
-                      <div className="flex flex-col justify-center">
-                        <div className="font-semibold text-sm">{employee.name}</div>
-                        <div className="text-xs text-muted-foreground">{employee.position}</div>
-                      </div>
-                      
-                      {weekDays.map(day => {
-                        const dayShifts = getShiftsForEmployeeAndDate(employee.id, day);
-                        return (
-                          <div key={day} className="min-h-16 border rounded-lg p-2 bg-gray-50">
-                            {dayShifts.map(shift => (
-                              <div
-                                key={shift.id}
-                                className={`text-xs p-2 rounded border-l-2 mb-1 ${getShiftColor(shift.shift_type)}`}
-                              >
-                                <div className="flex items-start justify-between gap-1">
-                                  <div className="font-semibold">{getShiftName(shift.shift_type)}</div>
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="h-4 w-4"
-                                    onClick={() => deleteShift(shift.id)}
-                                  >
-                                    <Icon name="X" size={12} />
-                                  </Button>
-                                </div>
-                                <div className="text-xs mt-1">
-                                  {shift.start_time} - {shift.end_time}
-                                </div>
-                                {shift.notes && (
-                                  <div className="text-xs text-muted-foreground mt-1 truncate">
-                                    {shift.notes}
-                                  </div>
-                                )}
-                              </div>
-                            ))}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-
-            {employees.filter(e => e.is_active).length === 0 && (
-              <div className="text-center py-20">
-                <div className="inline-flex items-center justify-center w-16 h-16 bg-purple-100 rounded-full mb-4">
-                  <Icon name="Users" size={32} className="text-primary" />
-                </div>
-                <h3 className="text-xl font-heading font-semibold mb-2">Добавьте сотрудников</h3>
-                <p className="text-muted-foreground mb-6">Начните с добавления сотрудников для создания графика</p>
-              </div>
-            )}
+                  <h3 className="text-xl font-heading font-bold mb-3">{service.title}</h3>
+                  <p className="text-muted-foreground">{service.description}</p>
+                </CardContent>
+              </Card>
+            ))}
           </div>
         </div>
-      </main>
+      </section>
+
+      <section className="py-20 bg-gradient-to-br from-purple-50 to-pink-50">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl md:text-5xl font-heading font-bold mb-4">
+              Почему выбирают меня
+            </h2>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+            <div className="text-center">
+              <div className="w-20 h-20 bg-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Icon name="Award" size={40} className="text-white" />
+              </div>
+              <h3 className="text-2xl font-bold mb-2">8+ лет опыта</h3>
+              <p className="text-muted-foreground">Профессионально провожу мероприятия с 2016 года</p>
+            </div>
+
+            <div className="text-center">
+              <div className="w-20 h-20 bg-pink-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Icon name="Users" size={40} className="text-white" />
+              </div>
+              <h3 className="text-2xl font-bold mb-2">500+ событий</h3>
+              <p className="text-muted-foreground">Успешно проведенных мероприятий разного формата</p>
+            </div>
+
+            <div className="text-center">
+              <div className="w-20 h-20 bg-orange-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Icon name="Heart" size={40} className="text-white" />
+              </div>
+              <h3 className="text-2xl font-bold mb-2">100% отдача</h3>
+              <p className="text-muted-foreground">Индивидуальный подход и внимание к деталям</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="py-20 bg-white">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl md:text-5xl font-heading font-bold mb-4 bg-gradient-to-r from-purple-600 to-pink-500 bg-clip-text text-transparent">
+              Недавние мероприятия
+            </h2>
+          </div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
+            {portfolio.map((item, idx) => (
+              <Card key={idx} className="hover:shadow-lg transition-all">
+                <CardContent className="p-6">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Icon name="Calendar" size={20} className="text-purple-600" />
+                    <span className="text-sm text-muted-foreground">{item.date}</span>
+                  </div>
+                  <h3 className="font-bold mb-2">{item.event}</h3>
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Icon name="Users" size={16} />
+                    <span>{item.guests} гостей</span>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section id="contact" className="py-20 bg-gradient-to-br from-purple-600 via-pink-500 to-orange-400">
+        <div className="container mx-auto px-4">
+          <div className="max-w-2xl mx-auto">
+            <div className="text-center mb-12 text-white">
+              <h2 className="text-4xl md:text-5xl font-heading font-bold mb-4">
+                Заказать мероприятие
+              </h2>
+              <p className="text-lg opacity-90">
+                Оставьте заявку, и я свяжусь с вами для обсуждения деталей
+              </p>
+            </div>
+
+            <Card className="shadow-2xl">
+              <CardContent className="p-8">
+                <form onSubmit={handleSubmit} className="space-y-6">
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Ваше имя</label>
+                    <Input
+                      placeholder="Как к вам обращаться?"
+                      value={formData.name}
+                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                      required
+                    />
+                  </div>
+
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-2">Телефон</label>
+                      <Input
+                        type="tel"
+                        placeholder="+7 999 999-99-99"
+                        value={formData.phone}
+                        onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-2">Email</label>
+                      <Input
+                        type="email"
+                        placeholder="your@email.com"
+                        value={formData.email}
+                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Тип мероприятия</label>
+                    <Input
+                      placeholder="Свадьба, корпоратив, день рождения..."
+                      value={formData.eventType}
+                      onChange={(e) => setFormData({ ...formData, eventType: e.target.value })}
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Сообщение</label>
+                    <Textarea
+                      placeholder="Расскажите о вашем мероприятии: дата, количество гостей, пожелания..."
+                      value={formData.message}
+                      onChange={(e) => setFormData({ ...formData, message: e.target.value })}
+                      rows={5}
+                    />
+                  </div>
+
+                  <Button type="submit" size="lg" className="w-full bg-gradient-to-r from-purple-600 to-pink-500 text-white text-lg">
+                    <Icon name="Send" size={20} className="mr-2" />
+                    Отправить заявку
+                  </Button>
+                </form>
+              </CardContent>
+            </Card>
+
+            <div className="mt-8 text-center text-white">
+              <p className="mb-4 text-lg">Или свяжитесь напрямую:</p>
+              <div className="flex flex-wrap gap-6 justify-center">
+                <a href="tel:+79991234567" className="flex items-center gap-2 hover:underline">
+                  <Icon name="Phone" size={20} />
+                  +7 (999) 123-45-67
+                </a>
+                <a href="mailto:host@example.com" className="flex items-center gap-2 hover:underline">
+                  <Icon name="Mail" size={20} />
+                  host@example.com
+                </a>
+                <a href="#" className="flex items-center gap-2 hover:underline">
+                  <Icon name="Instagram" size={20} />
+                  @alexandr_host
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <footer className="bg-gray-900 text-white py-8">
+        <div className="container mx-auto px-4 text-center">
+          <p className="text-muted-foreground">
+            © 2024 Александр Волков • Профессиональный ведущий мероприятий
+          </p>
+        </div>
+      </footer>
     </div>
   );
 };
